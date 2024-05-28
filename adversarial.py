@@ -69,9 +69,9 @@ def overlay_images(img1_path, img2_path, img3_path, output_path):
         for x in range(img1.size[0]):
             r3, g3, b3, a3 = img3.getpixel((x, y))
             r2, g2, b2, a2 = img2.getpixel((x, y))
-            r = int(0.2 * r3 + 0.8 * r2)
-            g = int(0.2 * g3 + 0.8 * g2)
-            b = int(0.2 * b3 + 0.8 * b2)
+            r = int(0.05 * r3 + 0.95 * r2)
+            g = int(0.05 * g3 + 0.95 * g2)
+            b = int(0.05 * b3 + 0.95 * b2)
             final_image.putpixel((x, y), (r, g, b, 255))
 
     for y in range(img1.size[1]):
