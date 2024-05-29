@@ -40,7 +40,7 @@ def gpu_color_dithering_and_noise(input_image_path):
 
     image_tensor = image_tensor.clamp(0, 1)
     transform_back = transforms.ToPILImage()
-    output_image = transform_back(image_tensor.squeeze(0)).convert("RGBA")
+    output_image = transform_back(image_tensor.squeeze(0).cpu()).convert("RGBA")
 
     path_parts = input_image_path.split('.')
     dithered_filename = f"{'.'.join(path_parts[:-1])}_dithered.{path_parts[-1]}"
@@ -63,26 +63,16 @@ def overlay_images(img1_path, img2_path, img3_path, output_path):
     img2 = img2.resize((1024, 1024), Resampling.LANCZOS)
     img3 = img3.resize((1024, 1024), Resampling.LANCZOS)
 
-    final_image = Image.new('RGBA', img1.size)
+    img1_np = np.array(img1, dtype=np.float32)
+    img2_np = np.array(img2, dtype=np.float32)
+    img3_np = np.array(img3, dtype=np.float32)
 
-    for y in range(img1.size[1]):
-        for x in range(img1.size[0]):
-            r3, g3, b3, a3 = img3.getpixel((x, y))
-            r2, g2, b2, a2 = img2.getpixel((x, y))
-            r = int(0.05 * r3 + 0.95 * r2)
-            g = int(0.05 * g3 + 0.95 * g2)
-            b = int(0.05 * b3 + 0.95 * b2)
-            final_image.putpixel((x, y), (r, g, b, 255))
+    final_image_np = (0.05 * img3_np + 0.95 * img2_np).astype(np.uint8)
+    final_image_np = (0.05 * img1_np + 0.95 * final_image_np).astype(np.uint8)
 
-    for y in range(img1.size[1]):
-        for x in range(img1.size[0]):
-            r1, g1, b1, a1 = img1.getpixel((x, y))
-            rf, gf, bf, af = final_image.getpixel((x, y))
-            r = int(0.05 * r1 + 0.95 * rf)
-            g = int(0.05 * g1 + 0.95 * gf)
-            b = int(0.05 * b1 + 0.95 * bf)
-            final_image.putpixel((x, y), (r, g, b, 255))
-
+    final_image = Image.fromarray(final_image_np, mode='RGBA')
+    if output_path.lower().endswith('.jpg') or output_path.lower().endswith('.jpeg'):
+        final_image = final_image.convert('RGB')
     final_image.save(output_path)
 
 input_img = input("Masukkan Input Image disini: ")
